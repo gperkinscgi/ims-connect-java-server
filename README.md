@@ -4,29 +4,57 @@ A high-performance, enterprise-grade Java server implementation for IBM IMS Conn
 
 ## Features
 
+### Core Capabilities
 - **High Performance**: Built on Netty NIO framework for maximum throughput
-- **Enterprise Security**: SSL/TLS with mutual authentication, audit logging
+- **Enterprise Security**: SSL/TLS with mutual authentication, RACF integration, audit logging
 - **Connection Pooling**: Intelligent load balancing across multiple mainframe backends
 - **Monitoring**: Prometheus metrics, health checks, and structured logging
 - **Spring Boot Integration**: Enterprise-ready with auto-configuration
 - **Kubernetes Ready**: Production deployment manifests included
-- **Protocol Compliance**: Full IMS Connect protocol support with HWSSMPL1 exit routine
+
+### Protocol Support
+- **IMS Connect Protocol**: Full compliance with IBM IMS Connect protocol and HWSSMPL1 exit routine
+- **OTMA Support**: Open Transaction Manager Access with conversational transactions
+- **System Messages**: Built-in PING, NOTIFY, ECHO, and STATUS message handlers
+- **Legacy Compatibility**: Supports both modern OTMA and legacy IMS Connect clients
+
+### Advanced Features
+- **Conversational Transactions**: Multi-message transaction sequences with state management
+- **RACF Security**: Resource Access Control Facility integration with token validation
+- **Message Segmentation**: Enhanced LL/ZZ message format support
+- **Protocol Routing**: Automatic detection and routing between OTMA and legacy protocols
 
 ## Architecture
 
 ```
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   Client Apps   │───▶│  IMS Connect     │───▶│   Mainframe     │
-│   (COBOL, Java, │    │  Java Server     │    │   IMS Systems   │
-│    .NET, etc.)  │    │                  │    │                 │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
-                              │
-                              ▼
-                       ┌──────────────────┐
-                       │   Monitoring     │
-                       │ (Prometheus,     │
-                       │  Grafana, Logs)  │
-                       └──────────────────┘
+┌─────────────────┐    ┌──────────────────────────────────┐    ┌─────────────────┐
+│   Client Apps   │───▶│        IMS Connect Java Server   │───▶│   Mainframe     │
+│                 │    │                                  │    │   IMS Systems   │
+│ • Legacy IMS    │    │  ┌─────────────────────────────┐ │    │                 │
+│ • OTMA Clients  │    │  │     Protocol Router         │ │    │ • IMS TM        │
+│ • System Tools  │    │  │   (Legacy/OTMA Detection)   │ │    │ • RACF Security │
+│                 │    │  └─────────────────────────────┘ │    │ • OTMA Support  │
+└─────────────────┘    │                                  │    └─────────────────┘
+                       │  ┌─────────────────────────────┐ │
+                       │  │    Transaction Handlers     │ │
+                       │  │ • Banking • System Messages │ │
+                       │  │ • Security • Conversational │ │
+                       │  └─────────────────────────────┘ │
+                       │                                  │
+                       │  ┌─────────────────────────────┐ │
+                       │  │    Security & Monitoring    │ │
+                       │  │ • RACF Integration          │ │
+                       │  │ • Audit Logging             │ │
+                       │  │ • Health Checks (PING)      │ │
+                       │  └─────────────────────────────┘ │
+                       └──────────────────────────────────┘
+                                          │
+                                          ▼
+                                   ┌──────────────────┐
+                                   │   Monitoring     │
+                                   │ (Prometheus,     │
+                                   │  Grafana, Logs)  │
+                                   └──────────────────┘
 ```
 
 ## Quick Start
@@ -191,6 +219,68 @@ ims-connect:
 | `MONITOR_PASSWORD` | Monitor user password | `monitor` |
 | `LOG_LEVEL` | Application log level | `DEBUG` |
 | `JVM_OPTS` | JVM options | `-Xmx1g -Xms512m` |
+
+## OTMA and System Messages
+
+### OTMA Support
+
+The server includes comprehensive OTMA (Open Transaction Manager Access) support for enhanced IMS messaging:
+
+```yaml
+ims-connect:
+  otma:
+    enabled: true
+    conversations:
+      enabled: true
+      max-conversations: 1000
+      conversation-timeout-ms: 300000  # 5 minutes
+    security:
+      racf-enabled: true
+      audit-enabled: true
+      token-validation-enabled: true
+```
+
+**OTMA Features:**
+- **Conversational Transactions**: Multi-message sequences with state management
+- **Enhanced Message Segmentation**: LL/ZZ format support for complex messages
+- **Protocol Auto-Detection**: Automatic routing between OTMA and legacy clients
+- **RACF Integration**: Full security token validation and authorization
+- **Audit Logging**: Comprehensive transaction audit trails
+
+### System Messages
+
+Built-in system message handlers for operational management:
+
+```yaml
+ims-connect:
+  system-messages:
+    enabled: true
+    ping-enabled: true     # Health check messages
+    notify-enabled: true   # System notifications
+    echo-enabled: true     # Connectivity testing
+    status-enabled: true   # Server status queries
+```
+
+**System Message Types:**
+
+| Message | Purpose | Response |
+|---------|---------|----------|
+| **PING** | Health checks | PONG with timestamp and server status |
+| **NOTIFY** | System notifications | Acknowledgment with appropriate log level |
+| **ECHO** | Connectivity testing | Exact echo of sent data |
+| **STATUS** | Server information | Runtime stats (memory, CPU, uptime) |
+
+**Usage Examples:**
+```bash
+# Health check via PING
+echo "PING TEST_DATA" | nc localhost 9999
+
+# Server status query
+echo "STATUS" | nc localhost 9999
+
+# Connectivity test
+echo "ECHO Hello World" | nc localhost 9999
+```
 
 ## Example Implementation
 
@@ -577,29 +667,54 @@ Mainframe Client receives response
 
 ### Health Checks
 
+**Spring Boot Actuator Endpoints:**
 ```bash
 # Basic health check
-curl http://localhost:8080/api/v1/health
+curl http://localhost:8080/actuator/health
 
-# Detailed health check (requires authentication)
-curl -u admin:admin http://localhost:8080/api/v1/health/detailed
+# Detailed health check (includes system message validation)
+curl -u admin:admin http://localhost:8080/actuator/health
 
-# Readiness check
-curl http://localhost:8080/api/v1/ready
+# System message health check (internal PING test)
+curl http://localhost:8080/actuator/health/systemMessage
+```
 
-# Liveness check
-curl http://localhost:8080/api/v1/live
+**IMS Connect Protocol Health Checks:**
+```bash
+# Direct PING to IMS Connect port
+echo "PING HEALTH_CHECK" | nc localhost 9999
+
+# Server status via STATUS message
+echo "STATUS" | nc localhost 9999
+
+# Echo test for connectivity
+echo "ECHO CONNECTION_TEST" | nc localhost 9999
 ```
 
 ### Prometheus Metrics
 
-Key metrics exposed:
-
+**Core Metrics:**
 - `ims_connect_active_connections` - Current active connections
 - `ims_connect_pool_size` - Connection pool size by backend
 - `ims_connect_transactions_total` - Total transactions processed
 - `ims_connect_transaction_duration_seconds` - Transaction response times
 - `ims_connect_backend_health_status` - Backend health status
+
+**OTMA Metrics:**
+- `ims_connect_otma_conversations_active` - Active conversational transactions
+- `ims_connect_otma_conversations_total` - Total conversations started
+- `ims_connect_otma_messages_total` - OTMA messages processed by type
+- `ims_connect_protocol_routing_total` - Protocol routing decisions (OTMA vs Legacy)
+
+**System Message Metrics:**
+- `ims_connect_system_messages_total` - System messages by type (PING, NOTIFY, ECHO, STATUS)
+- `ims_connect_ping_response_time_seconds` - PING response times
+- `ims_connect_health_check_status` - System message health check results
+
+**Security Metrics:**
+- `ims_connect_racf_validations_total` - RACF security validations
+- `ims_connect_security_failures_total` - Security validation failures
+- `ims_connect_audit_events_total` - Audit events logged
 
 ### Logging
 
