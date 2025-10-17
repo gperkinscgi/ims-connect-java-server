@@ -1,10 +1,10 @@
-package com.cgi.icbc.imsconnect.handlers;
+package com.cgi.icbc.imsconnect.examples.handlers;
 
 import com.cgi.icbc.imsconnect.protocol.IRMHeader;
 import com.cgi.icbc.imsconnect.security.SecurityContext;
 import com.cgi.icbc.imsconnect.security.SecureTransactionHandler;
 import com.cgi.icbc.imsconnect.server.IMSResponse;
-import com.cgi.icbc.imsconnect.service.AccountService;
+import com.cgi.icbc.imsconnect.examples.service.AccountService;
 import com.cgi.icbc.imsconnect.service.model.AccountBalance;
 import com.cgi.icbc.imsconnect.service.model.TransferResult;
 import com.cgi.icbc.imsconnect.util.EbcdicConverter;
@@ -14,7 +14,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * Secure banking transaction handler with RACF authorization.
+ * Example secure banking transaction handler with RACF authorization.
+ * This is a demonstration implementation showing how to implement secure
+ * transaction handlers with RACF security integration.
+ *
+ * NOTE: This is example code and should not be used in production without
+ * proper security, error handling, and business logic implementation.
  */
 @Component
 public class SecureBankingTransactionHandler extends SecureTransactionHandler {

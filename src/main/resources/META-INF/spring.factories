@@ -1,2 +1,7 @@
+# Auto Configuration
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+  com.cgi.icbc.imsconnect.config.IMSConnectAutoConfiguration,\
+  com.cgi.icbc.imsconnect.examples.config.ExamplesAutoConfiguration
+
 org.springframework.context.ApplicationContextInitializer=\
 com.cgi.icbc.imsconnect.config.EnvironmentLoader

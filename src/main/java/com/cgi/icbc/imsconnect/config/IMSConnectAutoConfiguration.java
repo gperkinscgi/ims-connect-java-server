@@ -2,7 +2,6 @@ package com.cgi.icbc.imsconnect.config;
 
 import com.cgi.icbc.imsconnect.conversation.ConversationManager;
 import com.cgi.icbc.imsconnect.handlers.LegacySystemMessageHandler;
-import com.cgi.icbc.imsconnect.handlers.OTMABankingTransactionHandler;
 import com.cgi.icbc.imsconnect.handlers.SystemMessageHandler;
 import com.cgi.icbc.imsconnect.monitoring.HealthCheckController;
 import com.cgi.icbc.imsconnect.monitoring.MetricsCollector;
@@ -17,7 +16,6 @@ import com.cgi.icbc.imsconnect.server.OTMAServerHandler;
 import com.cgi.icbc.imsconnect.server.OTMATransactionHandler;
 import com.cgi.icbc.imsconnect.server.SessionManager;
 import com.cgi.icbc.imsconnect.server.ServerConfiguration;
-import com.cgi.icbc.imsconnect.service.AccountService;
 import com.cgi.icbc.imsconnect.transaction.IMSTransactionManager;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.slf4j.Logger;
@@ -166,19 +164,6 @@ public class IMSConnectAutoConfiguration {
         return new AuditLogger();
     }
 
-    @Bean
-    @ConditionalOnProperty(name = "ims-connect.otma.enabled", havingValue = "true", matchIfMissing = true)
-    @ConditionalOnMissingBean
-    public AccountService accountService() {
-        return new AccountService();
-    }
-
-    @Bean
-    @ConditionalOnProperty(name = "ims-connect.otma.enabled", havingValue = "true", matchIfMissing = true)
-    @ConditionalOnMissingBean
-    public OTMABankingTransactionHandler otmaBankingTransactionHandler(AccountService accountService) {
-        return new OTMABankingTransactionHandler(accountService);
-    }
 
     @Bean
     @ConditionalOnMissingBean

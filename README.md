@@ -192,13 +192,21 @@ ims-connect:
 | `LOG_LEVEL` | Application log level | `DEBUG` |
 | `JVM_OPTS` | JVM options | `-Xmx1g -Xms512m` |
 
-## Sample Service Implementation
+## Example Implementation
 
-Here's how to implement a custom IMS transaction handler that processes incoming IMS Connect protocol messages:
+The server includes example transaction handlers in the `examples` package to demonstrate proper implementation patterns. **These are for demonstration only and should not be used in production.**
 
-### 1. Custom Transaction Handler
+To enable examples in development:
+```yaml
+ims-connect:
+  examples:
+    enabled: true
+```
+
+### Example Transaction Handler
 
 ```java
+// Located in com.cgi.icbc.imsconnect.examples.handlers
 @Component
 public class BankingTransactionHandler implements IMSTransactionHandler {
 
@@ -313,15 +321,16 @@ public class BankingTransactionHandler implements IMSTransactionHandler {
     }
 }
 
-### 2. Business Service Layer
+### Example Business Service Layer
 
 ```java
+// Located in com.cgi.icbc.imsconnect.examples.service
 @Service
 public class AccountService {
 
     private static final Logger logger = LoggerFactory.getLogger(AccountService.class);
 
-    // Mock data - in real implementation, this would call database/external services
+    // Example mock data - in real implementation, this would call database/external services
     private final Map<String, AccountBalance> accounts = new HashMap<>();
 
     @PostConstruct
@@ -749,6 +758,29 @@ ims-connect:
     max-connections-per-backend: 50
     connection-timeout-ms: 3000
 ```
+
+## Examples Package
+
+The project includes comprehensive examples in the `com.cgi.icbc.imsconnect.examples` package:
+
+- **Transaction Handlers**: `examples.handlers` - Sample implementations for banking transactions
+- **Services**: `examples.service` - Mock business logic services
+- **Configuration**: `examples.config` - Auto-configuration for examples
+
+**Important**: Examples are disabled by default and should only be enabled in development environments:
+
+```yaml
+ims-connect:
+  examples:
+    enabled: true  # Only for development/testing
+```
+
+Examples demonstrate:
+- OTMA conversational transactions
+- RACF security integration
+- EBCDIC message processing
+- Error handling patterns
+- Transaction lifecycle management
 
 ## Contributing
 

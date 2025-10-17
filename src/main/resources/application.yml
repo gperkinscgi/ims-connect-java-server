@@ -103,6 +103,9 @@ ims-connect:
     max-message-size: 1024
     allowed-clients: []  # Empty means all clients allowed
 
+  examples:
+    enabled: false  # Set to true to enable example transaction handlers
+
   backends:
     - name: "ims-backend-1"
       host: "localhost"
@@ -170,6 +173,8 @@ ims-connect:
     enabled: true
     security:
       racf-enabled: false  # Disabled for development
+  examples:
+    enabled: true  # Enable examples for development
 
 logging:
   level:
