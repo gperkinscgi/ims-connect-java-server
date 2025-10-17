@@ -1,0 +1,77 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ims-connect-config
+  namespace: ims-connect
+data:
+  application.yml: |
+    spring:
+      profiles:
+        active: kubernetes
+
+    ims-connect:
+      server:
+        port: 9999
+        boss-threads: 2
+        worker-threads: 8
+        backlog-size: 1024
+        keep-alive: true
+        tcp-no-delay: true
+        read-idle-time-seconds: 300
+        write-idle-time-seconds: 300
+        all-idle-time-seconds: 600
+        shutdown-timeout-seconds: 30
+        max-message-size: 32768
+        datastore-name: "KUBERNETES"
+
+      pool:
+        min-connections-per-backend: 2
+        max-connections-per-backend: 10
+        connection-timeout-ms: 5000
+        connection-max-idle-ms: 300000
+        health-check-interval-ms: 30000
+        max-retries: 3
+        retry-delay-ms: 1000
+
+      backends:
+        - name: "mainframe-1"
+          host: "${MAINFRAME_HOST_1:mainframe1.internal}"
+          port: ${MAINFRAME_PORT_1:9999}
+          ssl-enabled: true
+          weight: 100
+          health-check-timeout-ms: 5000
+          datastore-name: "IMS1"
+
+      security:
+        enabled: true
+        ssl:
+          enabled: true
+          keystore-path: "/app/config/ssl/keystore.p12"
+          keystore-password: "${SSL_KEYSTORE_PASSWORD}"
+          key-password: "${SSL_KEY_PASSWORD}"
+          truststore-path: "/app/config/ssl/truststore.p12"
+          truststore-password: "${SSL_TRUSTSTORE_PASSWORD}"
+          enabled-protocols: ["TLSv1.3", "TLSv1.2"]
+
+      monitoring:
+        enabled: true
+        metrics-enabled: true
+
+    management:
+      endpoints:
+        web:
+          exposure:
+            include: health,metrics,prometheus
+      endpoint:
+        health:
+          show-details: when-authorized
+      metrics:
+        export:
+          prometheus:
+            enabled: true
+
+    logging:
+      level:
+        com.cgi.icbc.imsconnect: INFO
+        org.springframework: WARN
+        io.netty: WARN

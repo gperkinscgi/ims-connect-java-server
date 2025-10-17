@@ -1,0 +1,164 @@
+# IMS Connect Server Configuration
+ims-connect:
+  server:
+    port: 9999
+    datastore-name: "IMSA"
+    boss-threads: 1
+    worker-threads: 8
+    backlog-size: 256
+    keep-alive: true
+    tcp-no-delay: true
+    read-idle-time-seconds: 300
+    write-idle-time-seconds: 300
+    all-idle-time-seconds: 600
+    shutdown-timeout-seconds: 30
+    max-message-size: 65536
+
+  pool:
+    min-connections-per-backend: 2
+    max-connections-per-backend: 20
+    connection-timeout-ms: 5000
+    connection-max-idle-ms: 300000
+    health-check-interval-ms: 30000
+    max-retries: 3
+    retry-delay-ms: 1000
+
+  security:
+    enabled: false
+    ssl:
+      enabled: false
+      keystore-path: "classpath:keystore.jks"
+      keystore-password: "changeit"
+      key-password: "changeit"
+      keystore-type: "JKS"
+      client-auth-required: false
+      enabled-protocols:
+        - "TLSv1.2"
+        - "TLSv1.3"
+    authentication:
+      required: false
+      type: "basic"
+      default-user: "admin"
+      default-password: "admin"
+
+  monitoring:
+    enabled: true
+    metrics-enabled: true
+    health-check-enabled: true
+    metrics-path: "/actuator/metrics"
+    health-path: "/actuator/health"
+
+  backends:
+    - name: "ims-backend-1"
+      host: "localhost"
+      port: 9998
+      ssl-enabled: false
+      weight: 1
+      health-check-timeout-ms: 5000
+      datastore-name: "IMSA"
+
+# Spring Boot Configuration
+server:
+  port: 8080
+  servlet:
+    context-path: /ims-connect
+
+spring:
+  application:
+    name: ims-connect-server
+  profiles:
+    active: development
+
+# Management endpoints
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+    metrics:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+# Logging configuration
+logging:
+  level:
+    com.cgi.icbc.imsconnect: INFO
+    io.netty: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%logger{36}] - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%logger{36}] - %msg%n"
+  file:
+    name: logs/ims-connect-server.log
+
+---
+# Development Profile
+spring:
+  config:
+    activate:
+      on-profile: development
+
+ims-connect:
+  server:
+    port: 9999
+  monitoring:
+    enabled: true
+  security:
+    enabled: false
+
+logging:
+  level:
+    com.cgi.icbc.imsconnect: DEBUG
+
+---
+# Production Profile
+spring:
+  config:
+    activate:
+      on-profile: production
+
+ims-connect:
+  server:
+    port: 9999
+    worker-threads: 16
+    max-message-size: 131072
+  pool:
+    max-connections-per-backend: 50
+  security:
+    enabled: true
+    ssl:
+      enabled: true
+    authentication:
+      required: true
+  monitoring:
+    enabled: true
+
+logging:
+  level:
+    com.cgi.icbc.imsconnect: INFO
+    root: WARN
+
+---
+# Test Profile
+spring:
+  config:
+    activate:
+      on-profile: test
+
+ims-connect:
+  server:
+    port: 0  # Random port for testing
+  monitoring:
+    enabled: false
+  security:
+    enabled: false
+
+logging:
+  level:
+    com.cgi.icbc.imsconnect: DEBUG

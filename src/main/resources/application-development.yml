@@ -1,0 +1,94 @@
+# Development Configuration - uses .env file for secrets
+spring:
+  profiles:
+    active: development
+
+ims-connect:
+  server:
+    port: 9999
+    datastore-name: "DEV-IMS"
+    boss-threads: 1
+    worker-threads: 4
+    backlog-size: 128
+    keep-alive: true
+    tcp-no-delay: true
+    read-idle-time-seconds: 300
+    write-idle-time-seconds: 300
+    all-idle-time-seconds: 600
+    shutdown-timeout-seconds: 30
+    max-message-size: 32768
+
+  pool:
+    min-connections-per-backend: 1
+    max-connections-per-backend: 5
+    connection-timeout-ms: 5000
+    connection-max-idle-ms: 300000
+    health-check-interval-ms: 30000
+    max-retries: 3
+    retry-delay-ms: 1000
+
+  backends:
+    - name: "dev-mainframe-1"
+      host: "${MAINFRAME_HOST_1:localhost}"
+      port: ${MAINFRAME_PORT_1:9999}
+      ssl-enabled: false
+      weight: 100
+      health-check-timeout-ms: 5000
+      datastore-name: "DEVIMS1"
+    - name: "dev-mainframe-2"
+      host: "${MAINFRAME_HOST_2:localhost}"
+      port: ${MAINFRAME_PORT_2:9998}
+      ssl-enabled: false
+      weight: 50
+      health-check-timeout-ms: 5000
+      datastore-name: "DEVIMS2"
+
+  security:
+    enabled: true
+    ssl:
+      enabled: false  # Disabled for local development
+      keystore-path: "config/ssl/dev-keystore.p12"
+      keystore-password: "${SSL_KEYSTORE_PASSWORD:devpassword}"
+      key-password: "${SSL_KEY_PASSWORD:devpassword}"
+      truststore-path: "config/ssl/dev-truststore.p12"
+      truststore-password: "${SSL_TRUSTSTORE_PASSWORD:devpassword}"
+      enabled-protocols: ["TLSv1.3", "TLSv1.2"]
+
+  monitoring:
+    enabled: true
+    metrics-enabled: true
+
+# Management endpoints - more permissive for development
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+# Development logging
+logging:
+  level:
+    com.cgi.icbc.imsconnect: "${LOG_LEVEL:DEBUG}"
+    org.springframework: INFO
+    org.springframework.security: DEBUG
+    io.netty: INFO
+    io.micrometer: WARN
+
+# Development database (if needed)
+spring.datasource:
+  url: "${DB_URL:jdbc:h2:mem:devdb}"
+  username: "${DB_USERNAME:sa}"
+  password: "${DB_PASSWORD:}"
+  driver-class-name: org.h2.Driver
+
+# H2 Console for development
+spring.h2.console:
+  enabled: true
+  path: /h2-console

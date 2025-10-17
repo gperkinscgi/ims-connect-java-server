@@ -34,3 +34,21 @@ hs_err_pid*
 # Build
 out/
 build/
+
+# Environment files
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# SSL certificates and keys (development)
+config/ssl/*.p12
+config/ssl/*.jks
+config/ssl/*.pem
+config/ssl/*.key
+config/ssl/*.crt
+
+# Logs
+logs/
+*.log

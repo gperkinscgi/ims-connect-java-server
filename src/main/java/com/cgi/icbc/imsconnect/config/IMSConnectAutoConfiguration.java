@@ -1,0 +1,110 @@
+package com.cgi.icbc.imsconnect.config;
+
+import com.cgi.icbc.imsconnect.monitoring.HealthCheckController;
+import com.cgi.icbc.imsconnect.monitoring.MetricsCollector;
+import com.cgi.icbc.imsconnect.pool.ConnectionPool;
+import com.cgi.icbc.imsconnect.pool.ConnectionPoolConfig;
+import com.cgi.icbc.imsconnect.server.DefaultIMSServerHandler;
+import com.cgi.icbc.imsconnect.server.IMSConnectServer;
+import com.cgi.icbc.imsconnect.server.SessionManager;
+import com.cgi.icbc.imsconnect.server.ServerConfiguration;
+import io.micrometer.core.instrument.MeterRegistry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+/**
+ * Auto-configuration for IMS Connect server components.
+ */
+@Configuration
+@EnableConfigurationProperties(IMSConnectProperties.class)
+public class IMSConnectAutoConfiguration {
+
+    private static final Logger logger = LoggerFactory.getLogger(IMSConnectAutoConfiguration.class);
+
+    @Bean
+    @ConditionalOnMissingBean
+    public ConnectionPoolConfig connectionPoolConfig(IMSConnectProperties properties) {
+        ConnectionPoolConfig config = new ConnectionPoolConfig();
+        IMSConnectProperties.Pool poolProps = properties.getPool();
+
+        config.setMinConnectionsPerBackend(poolProps.getMinConnectionsPerBackend());
+        config.setMaxConnectionsPerBackend(poolProps.getMaxConnectionsPerBackend());
+        config.setConnectionTimeoutMs(poolProps.getConnectionTimeoutMs());
+        config.setConnectionMaxIdleMs(poolProps.getConnectionMaxIdleMs());
+        config.setHealthCheckIntervalMs(poolProps.getHealthCheckIntervalMs());
+        config.setMaxRetries(poolProps.getMaxRetries());
+        config.setRetryDelayMs(poolProps.getRetryDelayMs());
+
+        return config;
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public ConnectionPool connectionPool(ConnectionPoolConfig config) {
+        return new ConnectionPool(config);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public SessionManager sessionManager() {
+        return new SessionManager();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public DefaultIMSServerHandler imsServerHandler(SessionManager sessionManager) {
+        return new DefaultIMSServerHandler(sessionManager);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public ServerConfiguration serverConfiguration(IMSConnectProperties properties) {
+        ServerConfiguration config = new ServerConfiguration();
+        IMSConnectProperties.Server serverProps = properties.getServer();
+
+        config.setBossThreads(serverProps.getBossThreads());
+        config.setWorkerThreads(serverProps.getWorkerThreads());
+        config.setBacklogSize(serverProps.getBacklogSize());
+        config.setKeepAlive(serverProps.isKeepAlive());
+        config.setTcpNoDelay(serverProps.isTcpNoDelay());
+        config.setReadIdleTimeSeconds(serverProps.getReadIdleTimeSeconds());
+        config.setWriteIdleTimeSeconds(serverProps.getWriteIdleTimeSeconds());
+        config.setAllIdleTimeSeconds(serverProps.getAllIdleTimeSeconds());
+        config.setShutdownTimeoutSeconds(serverProps.getShutdownTimeoutSeconds());
+        config.setMaxMessageSize(serverProps.getMaxMessageSize());
+        config.setDatastoreName(serverProps.getDatastoreName());
+
+        return config;
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public IMSConnectServer imsConnectServer(IMSConnectProperties properties,
+                                           DefaultIMSServerHandler handler,
+                                           ServerConfiguration config) {
+        int port = properties.getServer().getPort();
+        return new IMSConnectServer(port, handler, config);
+    }
+
+    @Bean
+    @ConditionalOnProperty(name = "ims-connect.monitoring.enabled", havingValue = "true", matchIfMissing = true)
+    @ConditionalOnMissingBean
+    public HealthCheckController healthCheckController(SessionManager sessionManager,
+                                                     ConnectionPool connectionPool) {
+        return new HealthCheckController(sessionManager, connectionPool);
+    }
+
+    @Bean
+    @ConditionalOnProperty(name = "ims-connect.monitoring.metrics-enabled", havingValue = "true", matchIfMissing = true)
+    @ConditionalOnMissingBean
+    public MetricsCollector metricsCollector(MeterRegistry meterRegistry,
+                                           SessionManager sessionManager,
+                                           ConnectionPool connectionPool) {
+        return new MetricsCollector(meterRegistry, sessionManager, connectionPool);
+    }
+}
