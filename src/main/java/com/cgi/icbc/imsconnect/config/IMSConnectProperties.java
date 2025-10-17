@@ -18,6 +18,7 @@ public class IMSConnectProperties {
     private Security security = new Security();
     private Monitoring monitoring = new Monitoring();
     private Otma otma = new Otma();
+    private SystemMessages systemMessages = new SystemMessages();
     private List<Backend> backends = new ArrayList<>();
 
     public static class Server {
@@ -300,6 +301,42 @@ public class IMSConnectProperties {
         public void setSupportedLterms(List<String> supportedLterms) { this.supportedLterms = supportedLterms; }
     }
 
+    public static class SystemMessages {
+        private boolean enabled = true;
+        private boolean pingEnabled = true;
+        private boolean notifyEnabled = true;
+        private boolean echoEnabled = true;
+        private boolean statusEnabled = true;
+        private boolean requireAuthentication = false;
+        private int maxMessageSize = 1024;
+        private List<String> allowedClients = new ArrayList<>();
+
+        // Getters and setters
+        public boolean isEnabled() { return enabled; }
+        public void setEnabled(boolean enabled) { this.enabled = enabled; }
+
+        public boolean isPingEnabled() { return pingEnabled; }
+        public void setPingEnabled(boolean pingEnabled) { this.pingEnabled = pingEnabled; }
+
+        public boolean isNotifyEnabled() { return notifyEnabled; }
+        public void setNotifyEnabled(boolean notifyEnabled) { this.notifyEnabled = notifyEnabled; }
+
+        public boolean isEchoEnabled() { return echoEnabled; }
+        public void setEchoEnabled(boolean echoEnabled) { this.echoEnabled = echoEnabled; }
+
+        public boolean isStatusEnabled() { return statusEnabled; }
+        public void setStatusEnabled(boolean statusEnabled) { this.statusEnabled = statusEnabled; }
+
+        public boolean isRequireAuthentication() { return requireAuthentication; }
+        public void setRequireAuthentication(boolean requireAuthentication) { this.requireAuthentication = requireAuthentication; }
+
+        public int getMaxMessageSize() { return maxMessageSize; }
+        public void setMaxMessageSize(int maxMessageSize) { this.maxMessageSize = maxMessageSize; }
+
+        public List<String> getAllowedClients() { return allowedClients; }
+        public void setAllowedClients(List<String> allowedClients) { this.allowedClients = allowedClients; }
+    }
+
     // Main class getters and setters
     public Server getServer() { return server; }
     public void setServer(Server server) { this.server = server; }
@@ -315,6 +352,9 @@ public class IMSConnectProperties {
 
     public Otma getOtma() { return otma; }
     public void setOtma(Otma otma) { this.otma = otma; }
+
+    public SystemMessages getSystemMessages() { return systemMessages; }
+    public void setSystemMessages(SystemMessages systemMessages) { this.systemMessages = systemMessages; }
 
     public List<Backend> getBackends() { return backends; }
     public void setBackends(List<Backend> backends) { this.backends = backends; }

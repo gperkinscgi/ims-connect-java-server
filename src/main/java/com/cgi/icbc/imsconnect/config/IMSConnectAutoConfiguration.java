@@ -1,7 +1,9 @@
 package com.cgi.icbc.imsconnect.config;
 
 import com.cgi.icbc.imsconnect.conversation.ConversationManager;
+import com.cgi.icbc.imsconnect.handlers.LegacySystemMessageHandler;
 import com.cgi.icbc.imsconnect.handlers.OTMABankingTransactionHandler;
+import com.cgi.icbc.imsconnect.handlers.SystemMessageHandler;
 import com.cgi.icbc.imsconnect.monitoring.HealthCheckController;
 import com.cgi.icbc.imsconnect.monitoring.MetricsCollector;
 import com.cgi.icbc.imsconnect.pool.ConnectionPool;
@@ -176,6 +178,18 @@ public class IMSConnectAutoConfiguration {
     @ConditionalOnMissingBean
     public OTMABankingTransactionHandler otmaBankingTransactionHandler(AccountService accountService) {
         return new OTMABankingTransactionHandler(accountService);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public SystemMessageHandler systemMessageHandler() {
+        return new SystemMessageHandler();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public LegacySystemMessageHandler legacySystemMessageHandler() {
+        return new LegacySystemMessageHandler();
     }
 
     @Bean

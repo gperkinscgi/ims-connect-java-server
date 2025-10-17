@@ -84,12 +84,24 @@ ims-connect:
       exempt-transaction-codes:
         - "PING"
         - "ECHO"
+        - "NOTIFY"
+        - "STATUS"
     supported-lterms:
       - "BANK01"
       - "BANK02"
       - "BANKTST"
       - "TERM01"
       - "TERM02"
+
+  system-messages:
+    enabled: true
+    ping-enabled: true
+    notify-enabled: true
+    echo-enabled: true
+    status-enabled: true
+    require-authentication: false
+    max-message-size: 1024
+    allowed-clients: []  # Empty means all clients allowed
 
   backends:
     - name: "ims-backend-1"
