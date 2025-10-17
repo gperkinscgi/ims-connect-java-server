@@ -17,6 +17,7 @@ public class IMSConnectProperties {
     private Pool pool = new Pool();
     private Security security = new Security();
     private Monitoring monitoring = new Monitoring();
+    private Otma otma = new Otma();
     private List<Backend> backends = new ArrayList<>();
 
     public static class Server {
@@ -239,6 +240,66 @@ public class IMSConnectProperties {
         public void setDatastoreName(String datastoreName) { this.datastoreName = datastoreName; }
     }
 
+    public static class Otma {
+        private boolean enabled = true;
+        private Conversations conversations = new Conversations();
+        private Security security = new Security();
+        private List<String> supportedLterms = new ArrayList<>();
+
+        public static class Conversations {
+            private boolean enabled = true;
+            private int maxConversations = 1000;
+            private long conversationTimeoutMs = 300000; // 5 minutes
+            private long cleanupIntervalMs = 60000; // 1 minute
+
+            // Getters and setters
+            public boolean isEnabled() { return enabled; }
+            public void setEnabled(boolean enabled) { this.enabled = enabled; }
+
+            public int getMaxConversations() { return maxConversations; }
+            public void setMaxConversations(int maxConversations) { this.maxConversations = maxConversations; }
+
+            public long getConversationTimeoutMs() { return conversationTimeoutMs; }
+            public void setConversationTimeoutMs(long conversationTimeoutMs) { this.conversationTimeoutMs = conversationTimeoutMs; }
+
+            public long getCleanupIntervalMs() { return cleanupIntervalMs; }
+            public void setCleanupIntervalMs(long cleanupIntervalMs) { this.cleanupIntervalMs = cleanupIntervalMs; }
+        }
+
+        public static class Security {
+            private boolean racfEnabled = true;
+            private boolean auditEnabled = true;
+            private boolean tokenValidationEnabled = true;
+            private List<String> exemptTransactionCodes = new ArrayList<>();
+
+            // Getters and setters
+            public boolean isRacfEnabled() { return racfEnabled; }
+            public void setRacfEnabled(boolean racfEnabled) { this.racfEnabled = racfEnabled; }
+
+            public boolean isAuditEnabled() { return auditEnabled; }
+            public void setAuditEnabled(boolean auditEnabled) { this.auditEnabled = auditEnabled; }
+
+            public boolean isTokenValidationEnabled() { return tokenValidationEnabled; }
+            public void setTokenValidationEnabled(boolean tokenValidationEnabled) { this.tokenValidationEnabled = tokenValidationEnabled; }
+
+            public List<String> getExemptTransactionCodes() { return exemptTransactionCodes; }
+            public void setExemptTransactionCodes(List<String> exemptTransactionCodes) { this.exemptTransactionCodes = exemptTransactionCodes; }
+        }
+
+        // Getters and setters
+        public boolean isEnabled() { return enabled; }
+        public void setEnabled(boolean enabled) { this.enabled = enabled; }
+
+        public Conversations getConversations() { return conversations; }
+        public void setConversations(Conversations conversations) { this.conversations = conversations; }
+
+        public Security getSecurity() { return security; }
+        public void setSecurity(Security security) { this.security = security; }
+
+        public List<String> getSupportedLterms() { return supportedLterms; }
+        public void setSupportedLterms(List<String> supportedLterms) { this.supportedLterms = supportedLterms; }
+    }
+
     // Main class getters and setters
     public Server getServer() { return server; }
     public void setServer(Server server) { this.server = server; }
@@ -251,6 +312,9 @@ public class IMSConnectProperties {
 
     public Monitoring getMonitoring() { return monitoring; }
     public void setMonitoring(Monitoring monitoring) { this.monitoring = monitoring; }
+
+    public Otma getOtma() { return otma; }
+    public void setOtma(Otma otma) { this.otma = otma; }
 
     public List<Backend> getBackends() { return backends; }
     public void setBackends(List<Backend> backends) { this.backends = backends; }

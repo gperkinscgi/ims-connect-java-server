@@ -25,7 +25,9 @@ public class IMSConnectServer {
 
     private final int port;
     private final IMSConnectServerHandler messageHandler;
+    private final OTMAServerHandler otmaHandler;
     private final ServerConfiguration config;
+    private final boolean otmaEnabled;
 
     private EventLoopGroup bossGroup;
     private EventLoopGroup workerGroup;
@@ -33,13 +35,19 @@ public class IMSConnectServer {
     private SslContext sslContext;
 
     public IMSConnectServer(int port, IMSConnectServerHandler messageHandler) {
-        this(port, messageHandler, ServerConfiguration.defaultConfig());
+        this(port, messageHandler, null, ServerConfiguration.defaultConfig());
     }
 
     public IMSConnectServer(int port, IMSConnectServerHandler messageHandler, ServerConfiguration config) {
+        this(port, messageHandler, null, config);
+    }
+
+    public IMSConnectServer(int port, IMSConnectServerHandler messageHandler, OTMAServerHandler otmaHandler, ServerConfiguration config) {
         this.port = port;
         this.messageHandler = messageHandler;
+        this.otmaHandler = otmaHandler;
         this.config = config;
+        this.otmaEnabled = otmaHandler != null;
     }
 
     /**
@@ -80,9 +88,17 @@ public class IMSConnectServer {
                                     config.getAllIdleTimeSeconds()));
 
                             // Add IMS Connect protocol handlers
-                            pipeline.addLast("imsDecoder", new IMSMessageDecoder());
-                            pipeline.addLast("imsEncoder", new IMSMessageEncoder());
-                            pipeline.addLast("imsHandler", new IMSChannelHandler(messageHandler, config));
+                            if (otmaEnabled) {
+                                // OTMA-enabled pipeline with support for both legacy and OTMA messages
+                                pipeline.addLast("otmaDecoder", new OTMAMessageDecoder());
+                                pipeline.addLast("otmaEncoder", new OTMAMessageEncoder());
+                                pipeline.addLast("protocolRouter", new ProtocolRoutingHandler(messageHandler, otmaHandler));
+                            } else {
+                                // Legacy IMS Connect pipeline
+                                pipeline.addLast("imsDecoder", new IMSMessageDecoder());
+                                pipeline.addLast("imsEncoder", new IMSMessageEncoder());
+                                pipeline.addLast("imsHandler", new IMSChannelHandler(messageHandler, config));
+                            }
                         }
                     });
 

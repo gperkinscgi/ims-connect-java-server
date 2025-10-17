@@ -70,6 +70,27 @@ ims-connect:
     metrics-path: "/actuator/metrics"
     health-path: "/actuator/health"
 
+  otma:
+    enabled: true
+    conversations:
+      enabled: true
+      max-conversations: 1000
+      conversation-timeout-ms: 300000  # 5 minutes
+      cleanup-interval-ms: 60000      # 1 minute
+    security:
+      racf-enabled: true
+      audit-enabled: true
+      token-validation-enabled: true
+      exempt-transaction-codes:
+        - "PING"
+        - "ECHO"
+    supported-lterms:
+      - "BANK01"
+      - "BANK02"
+      - "BANKTST"
+      - "TERM01"
+      - "TERM02"
+
   backends:
     - name: "ims-backend-1"
       host: "localhost"
@@ -133,6 +154,10 @@ ims-connect:
     enabled: true
   security:
     enabled: false
+  otma:
+    enabled: true
+    security:
+      racf-enabled: false  # Disabled for development
 
 logging:
   level:
@@ -160,6 +185,12 @@ ims-connect:
       required: true
   monitoring:
     enabled: true
+  otma:
+    enabled: true
+    security:
+      racf-enabled: true  # Full security for production
+      audit-enabled: true
+      token-validation-enabled: true
 
 logging:
   level:
@@ -180,6 +211,11 @@ ims-connect:
     enabled: false
   security:
     enabled: false
+  otma:
+    enabled: true
+    security:
+      racf-enabled: false  # Disabled for testing
+      audit-enabled: false
 
 logging:
   level:
