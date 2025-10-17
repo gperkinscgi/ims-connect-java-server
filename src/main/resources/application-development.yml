@@ -53,6 +53,27 @@ ims-connect:
       truststore-path: "config/ssl/dev-truststore.p12"
       truststore-password: "${SSL_TRUSTSTORE_PASSWORD:devpassword}"
       enabled-protocols: ["TLSv1.3", "TLSv1.2"]
+    racf:
+      enabled: true
+      external-validation: false  # Use internal validation for development
+      validation-service: "INTERNAL"
+      timeout-seconds: 5
+      token-encryption: false
+      token-expiry-minutes: 60    # 1 hour for development
+      require-group-membership: false
+      authorized-groups:
+        - "BANK_OPERATORS"
+        - "DEVELOPERS"
+        - "TESTERS"
+      default-authorities:
+        - "IMS.CONNECT"
+        - "IMS.TXN.*"  # Permissive for development
+      passticket:
+        enabled: false
+      audit:
+        security-events: true
+        failed-attempts-threshold: 10  # More lenient for development
+        lockout-duration-minutes: 5
 
   monitoring:
     enabled: true

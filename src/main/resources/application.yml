@@ -40,6 +40,28 @@ ims-connect:
       type: "basic"
       default-user: "admin"
       default-password: "admin"
+    racf:
+      enabled: false
+      external-validation: false
+      validation-service: "RACF_EXIT_ROUTINE"
+      timeout-seconds: 30
+      token-encryption: true
+      token-expiry-minutes: 480  # 8 hours
+      require-group-membership: false
+      authorized-groups:
+        - "BANK_OPERATORS"
+        - "IMS_USERS"
+        - "ADMINS"
+      default-authorities:
+        - "IMS.CONNECT"
+        - "IMS.TXN.BALINQ"
+      passticket:
+        enabled: false
+        application-name: "IMSCONN"
+      audit:
+        security-events: true
+        failed-attempts-threshold: 3
+        lockout-duration-minutes: 30
 
   monitoring:
     enabled: true

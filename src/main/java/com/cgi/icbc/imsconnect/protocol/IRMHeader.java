@@ -39,6 +39,11 @@ public class IRMHeader {
     private byte[] groupId;            // 8 bytes - RACF group id
     private byte[] password;           // 8 bytes - RACF password
     private byte[] applicationName;    // 8 bytes - RACF application name
+    private byte[] securityToken;      // Variable - Security token/ticket
+    private short tokenLength;         // 2 bytes - Length of security token
+    private byte authenticationMethod; // 1 byte - Authentication method (password, token, certificate)
+    private byte[] timestamp;          // 8 bytes - Token creation timestamp
+    private int tokenExpiration;       // 4 bytes - Token expiration time (seconds from epoch)
     private byte[] rerouteName;        // 8 bytes - reroute tpipe name
     private byte[] tagAdapter;         // 8 bytes - XML adapter name
     private byte[] tagMap;             // 8 bytes - XML converter name
@@ -51,6 +56,14 @@ public class IRMHeader {
     public static final byte IRMARCH3 = 3;  // IRMARCH2 + correlation + modname
     public static final byte IRMARCH4 = 4;  // IRMARCH3 + session tokens
     public static final byte IRMARCH5 = 5;  // IRMARCH4 + extensions
+    public static final byte IRMARCH6 = 6;  // IRMARCH5 + enhanced security tokens
+
+    // Authentication methods
+    public static final byte AUTH_PASSWORD = 0x01;      // RACF password authentication
+    public static final byte AUTH_TOKEN = 0x02;         // Security token authentication
+    public static final byte AUTH_CERTIFICATE = 0x03;   // Certificate-based authentication
+    public static final byte AUTH_KERBEROS = 0x04;      // Kerberos ticket
+    public static final byte AUTH_PASSTICKET = 0x05;    // RACF PassTicket
 
     // Communication flags (F0)
     public static final byte F0_NAK_REASON = 0x08;      // NAK with reason code
@@ -347,10 +360,64 @@ public class IRMHeader {
         this.password = EbcdicConverter.toFixedLengthEbcdic(password, 8, ' ');
     }
 
+    // Security token methods
+    public byte[] getSecurityToken() {
+        return securityToken != null ? Arrays.copyOf(securityToken, securityToken.length) : null;
+    }
+    public void setSecurityToken(byte[] securityToken) {
+        this.securityToken = securityToken != null ? Arrays.copyOf(securityToken, securityToken.length) : null;
+        this.tokenLength = (short) (securityToken != null ? securityToken.length : 0);
+    }
+
+    public short getTokenLength() { return tokenLength; }
+    public void setTokenLength(short tokenLength) { this.tokenLength = tokenLength; }
+
+    public byte getAuthenticationMethod() { return authenticationMethod; }
+    public void setAuthenticationMethod(byte authenticationMethod) { this.authenticationMethod = authenticationMethod; }
+
+    public byte[] getTimestamp() {
+        return timestamp != null ? Arrays.copyOf(timestamp, timestamp.length) : null;
+    }
+    public void setTimestamp(byte[] timestamp) {
+        this.timestamp = timestamp != null ? Arrays.copyOf(timestamp, timestamp.length) : null;
+    }
+
+    public int getTokenExpiration() { return tokenExpiration; }
+    public void setTokenExpiration(int tokenExpiration) { this.tokenExpiration = tokenExpiration; }
+
+    // Security helper methods
+    public boolean hasSecurityToken() {
+        return securityToken != null && securityToken.length > 0;
+    }
+
+    public boolean isTokenExpired() {
+        if (tokenExpiration == 0) return false;
+        return System.currentTimeMillis() / 1000 > tokenExpiration;
+    }
+
+    public boolean isPasswordAuthentication() {
+        return authenticationMethod == AUTH_PASSWORD;
+    }
+
+    public boolean isTokenAuthentication() {
+        return authenticationMethod == AUTH_TOKEN || authenticationMethod == AUTH_PASSTICKET;
+    }
+
+    public String getAuthenticationMethodName() {
+        return switch (authenticationMethod) {
+            case AUTH_PASSWORD -> "Password";
+            case AUTH_TOKEN -> "Token";
+            case AUTH_CERTIFICATE -> "Certificate";
+            case AUTH_KERBEROS -> "Kerberos";
+            case AUTH_PASSTICKET -> "PassTicket";
+            default -> "Unknown";
+        };
+    }
+
     @Override
     public String toString() {
-        return String.format("IRMHeader{totalLength=%d, arch=%d, clientId='%s', txnCode='%s', destId='%s', msgType=0x%02X}",
+        return String.format("IRMHeader{totalLength=%d, arch=%d, clientId='%s', txnCode='%s', destId='%s', msgType=0x%02X, userId='%s', authMethod=%s}",
                 totalLength, architecture, getClientIdAsString(), getTransactionCodeAsString(),
-                getDestinationIdAsString(), messageType & 0xFF);
+                getDestinationIdAsString(), messageType & 0xFF, getUserIdAsString(), getAuthenticationMethodName());
     }
 }
